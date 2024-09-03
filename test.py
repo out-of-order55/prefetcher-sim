@@ -39,4 +39,5 @@ if __name__ == '__main__':
     sim.set_params(way,size, cacheline_size,replacement,32)
     
     sim.cache_read(32,0,0)
-    print(size,cacheline_size,way,replacement)
+    sim.cache_read(32,0,0)
+    sim.sim.print_info()

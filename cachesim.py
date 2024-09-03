@@ -15,7 +15,7 @@ class CacheSim:
         assert line_size%2==0,"Cacheline size is unalign!"
         assert total_size%2==0,"Cacheline size is unalign!"
 
-        self.way = way #way=0-> 直接相连 way=-1 全相连 way>1 组相联 
+        self.way = way #way=0-> 全相连 way=-1 直接相连 way>1 组相联 
         self.line_size  = line_size #byte
         self.total_size = total_size #Kb
         self.addr_size   = addr_size

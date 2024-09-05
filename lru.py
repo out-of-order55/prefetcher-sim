@@ -1,6 +1,6 @@
 import os
 import math
-
+##########################LRU logic#####################
 class LRU:
     def __init__(self):
         self.way = 2
@@ -34,7 +34,7 @@ class LRU:
                 return True,row_index 
         return False,-1
 
-
+    # ADD trace here
     def read(self,addr):
         tag     = addr>>(self.offset_bit+self.index_bit)
         index   = (addr>>self.offset_bit)&((1<<(self.index_bit))-1)
@@ -58,6 +58,8 @@ class LRU:
             return -1,hit
     def print_info(self):
         print(f'Total hit {self.hit} Total miss {self.miss} hit rate {self.hit/(self.hit+self.miss)}')
+
+######################Bin Tree###################
 class LruTree:
     
     def __init__(self, val: int, node_id: int = 0):

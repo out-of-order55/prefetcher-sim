@@ -13,7 +13,7 @@ You can use the cfg file to configure cache parameters
 PLRU replacement only   
 Direct mapping,Set associative,Full associative  
 Input data size must *smaller* than cacheline size
-
+No *unalign* support(data size:32bit,so addr must 4byte align)
 ### *Todo*
 More Replacements  
 Access Latency and miss Latency  

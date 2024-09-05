@@ -33,11 +33,12 @@ if __name__ == '__main__':
     way = int(config.get(section, 'Way of Associativity'))
 
     replacement = (config.get(section, 'Way of Replacement'))
-
+    data_size   = int(config.get(section, 'Data Size'))
 
     sim = CacheSim()
-    sim.set_params(way,size, cacheline_size,replacement,32)
+    sim.set_params(way,size, cacheline_size,replacement,32,data_size)
+    for i in range(0, 10000, 1):
+        sim.cache_read(i,0,0,0)
     
-    sim.cache_read(32,0,0)
-    sim.cache_read(32,0,0)
+
     sim.sim.print_info()

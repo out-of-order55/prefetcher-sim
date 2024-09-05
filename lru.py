@@ -1,5 +1,6 @@
 import os
 import math
+
 class LRU:
     def __init__(self):
         self.way = 2
@@ -9,6 +10,7 @@ class LRU:
         self.lrutree    =   LruTree(0)
         self.hit        = 0
         self.miss       = 0
+        
     def set_params(self,
                    way,
                    tag_bit, index_bit,
@@ -17,8 +19,10 @@ class LRU:
         self.tag_bit = tag_bit
         self.index_bit = index_bit
         self.offset_bit = offset_bit
+        print(index_num)
         self.tagv = [[ 0xffffffff for _ in range(index_num)] for _ in range(way)]
         self.data = [[ 0  for _ in range(index_num)] for _ in range(way)]
+
         self.lrutree  = self.lrutree.create_full_binary_tree(int(math.log2(way)),0)
         self.lrutree.print_tree()
         
@@ -26,26 +30,32 @@ class LRU:
 
     def check_hit(self,tag,index):
         for row_index,row in enumerate(self.tagv):
-            if tag in row:
+            if tag==row[index]:
                 return True,row_index 
         return False,-1
-    
+
+
     def read(self,addr):
         tag     = addr>>(self.offset_bit+self.index_bit)
-        index   = (addr<<self.tag_bit)>>(self.tag_bit+self.offset_bit)
-
+        index   = (addr>>self.offset_bit)&((1<<(self.index_bit))-1)
+        
+        # result = (number >> start) & mask
+        # print(f"tag {tag:x} index {index:x} addr {addr:x} ")
         hit, row = self.check_hit(tag,index)
-
+        # print(hit,row)
         data = self.data[row][index]
         if hit:
             self.hit=self.hit+1
-            return data
+            # print(f'hit tag {self.tagv[row][index]:x} index{index } data {data }')
+            return data,hit
         else:
             self.miss=self.miss+1 
             val,node_id = self.lrutree.replace()
             self.lrutree.update(node_id,1 if val==0 else 0)
             way = node_id-2**int(math.log2(self.way)-1)+val
+            # self.lrutree.print_tree()
             self.tagv[way][index] = tag
+            return -1,hit
     def print_info(self):
         print(f'Total hit {self.hit} Total miss {self.miss} hit rate {self.hit/(self.hit+self.miss)}')
 class LruTree:

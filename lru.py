@@ -1,28 +1,29 @@
 import os
 import math
+
 ##########################LRU logic#####################
 class LRU:
     def __init__(self):
         self.way = 2
         self.line_size  = 16 #byte
         self.total_size = 8 #Kb
-        self.addr_size = 32 #bit
+        # self.addr_size = 32 #bit
         self.lrutree    =   LruTree(0)
         self.hit        = 0
         self.miss       = 0
         
     def set_params(self,
-                   way,
-                   tag_bit, index_bit,
-                   offset_bit,index_num):
+                   way,index_num,data_num):
         self.way = way
-        self.tag_bit = tag_bit
-        self.index_bit = index_bit
-        self.offset_bit = offset_bit
-        print(index_num)
+        # self.tag_bit = tag_bit
+        # self.index_bit = index_bit
+        # self.offset_bit = offset_bit
+        # self.data_size = data_size
+        self.data_num = data_num
+        # print(f"self.data_num {self.data_num}")
         self.tagv = [[ 0xffffffff for _ in range(index_num)] for _ in range(way)]
-        self.data = [[ 0  for _ in range(index_num)] for _ in range(way)]
-
+        self.dirty = [[ 0 for _ in range(index_num)] for _ in range(way)]
+        self.data = [[[0  for _ in range(data_num)] for _ in range(index_num)] for _ in range(way)]
         self.lrutree  = self.lrutree.create_full_binary_tree(int(math.log2(way)),0)
         self.lrutree.print_tree()
         
@@ -33,31 +34,92 @@ class LRU:
             if tag==row[index]:
                 return True,row_index 
         return False,-1
-
+    
+    def update(self,way:int):
+        way_bin = int((self.way)/2)
+        # assert(way_bin%2==0|way_bin==1)
+        depth = int(math.log2(self.way))
+        i=0
+        # way+=1 #way is array addr begin->0
+        way_i = way+1
+        node_id = 1
+        # print(f"way {way } {way_bin} depth {depth} node {node_id}")
+        while(i<depth):
+            
+            if(way_i>way_bin):
+                self.lrutree.update(node_id,0)#right has been access
+                node_id=node_id*2+1
+                way_i-=way_bin
+            else:
+                self.lrutree.update(node_id,1)
+                node_id=node_id*2
+            way_bin/=2
+            # print(f"way {way_i } {way_bin}")
+            i+=1
     # ADD trace here
-    def read(self,addr):
-        tag     = addr>>(self.offset_bit+self.index_bit)
-        index   = (addr>>self.offset_bit)&((1<<(self.index_bit))-1)
-        
+    def read(self,tag,index,data_region,mask):
+        # tag     = addr>>(self.offset_bit+self.index_bit)
+        # index   = (addr>>self.offset_bit)&((1<<(self.index_bit))-1)
+        # temp = int ((addr&((1<<(self.offset_bit))-1)))
+        # data_region = int(temp/(self.data_size/8))
+        # print(f"region {data_region} addr {addr} temp {temp}")
         # result = (number >> start) & mask
         # print(f"tag {tag:x} index {index:x} addr {addr:x} ")
         hit, row = self.check_hit(tag,index)
         # print(hit,row)
-        data = self.data[row][index]
+        
         if hit:
+           
+            data = self.data[row][index][data_region]
+            
             self.hit=self.hit+1
+            self.update(row)
             # print(f'hit tag {self.tagv[row][index]:x} index{index } data {data }')
+            # self.lrutree.print_tree()
             return data,hit
         else:
             self.miss=self.miss+1 
             val,node_id = self.lrutree.replace()
-            self.lrutree.update(node_id,1 if val==0 else 0)
-            way = node_id-2**int(math.log2(self.way)-1)+val
+            way = 2*(node_id-2**int(math.log2(self.way)-1))+val
+            # print(f"rep_id {node_id} way {way}")
+            self.update(way)
+            # self.lrutree.update(node_id,1 if val==0 else 0)
+            
             # self.lrutree.print_tree()
             self.tagv[way][index] = tag
+
+# TODO : add data support
+            # for i in range(self.data_num):
+            #     self.data[way][index][i] = 0; 
             return -1,hit
+        
+    def write(self,tag,index,mask,data,data_region):
+
+        # print(f"region {data_region} addr {addr} temp {temp}")
+        # result = (number >> start) & mask
+        # print(f"tag {tag:x} index {index:x} addr {addr:x} ")
+        hit, row = self.check_hit(tag,index)
+        if hit :
+            self.hit+=1
+            self.data[row][index][data_region] =  data
+            self.dirty[row][index] = True
+            self.update(row)
+        else :
+            self.miss +=1
+            val,node_id = self.lrutree.replace()
+            way = 2*(node_id-2**int(math.log2(self.way)-1))+val    
+            if self.dirty[way][index]:
+                #TODO:add miss read
+                None
+            self.update(way)
+            self.tagv[way][index] = tag    
+
+
     def print_info(self):
         print(f'Total hit {self.hit} Total miss {self.miss} hit rate {self.hit/(self.hit+self.miss)}')
+
+
+
 
 ######################Bin Tree###################
 class LruTree:
@@ -90,17 +152,19 @@ class LruTree:
 
             else:
                 node = node.right
-
         return  node.val,node.node_id
-    
+
+    # update the entire right node or left node 
+    # the node_id input is the leaf node
     def update(self, node_id: int, val: int):
- 
+
         node = self.search(node_id)
         if node:
             node.val = val
             # print(f"Node with ID {node_id} found and updated to {val}.")
         else:
             print(f"Node with ID {node_id} not found.")
+
 
     def search(self, node_id: int):
  

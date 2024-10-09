@@ -37,8 +37,13 @@ if __name__ == '__main__':
 
     sim = CacheSim()
     sim.set_params(way,size, cacheline_size,replacement,32,data_size)
-    for i in range(0, 10000, 1):
-        sim.cache_read(i,0,0,0)
-    
+    for i in range(0, 0x10000, 0x4):
+        sim.cache_write(i,0,0)
+    # sim.cache_read(0,0,0,0)
+    # sim.cache_read(0x4,0,0,0)
+    # sim.cache_read(0x8,0,0,0)
+    # sim.cache_read(0xc,0,0,0)
+    # sim.cache_read(0x14,0,0,0)
+    # sim.cache_read(0,0,0,0)
 
     sim.sim.print_info()

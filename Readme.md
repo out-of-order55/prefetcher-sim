@@ -21,6 +21,7 @@ More Replacements
 Access Latency and miss Latency  
 Add Memory Trace  
 Add Cache consistency  
+Add Scratchpad  
 Add exclusive or non-inclusive Cache    
 More test to check the correctness  
 

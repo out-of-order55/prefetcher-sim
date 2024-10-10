@@ -16,7 +16,18 @@ class L1Cache(Cache):
                    replacement,addr_size,data_size,isllc)
         self.backing_mem = None
     
+class Scratchpad:
+    def __init__(self,bank_num,bank_row,dim,data_size):
+        self.bank_num = bank_num
+        self.bank_row =bank_row 
+        self.dim=dim
+        self.data_size = data_size
+        self.backing_mem = None
         
+    def read(self,addr):
+        None
+    def write(self,addr,data):
+        None   
 class L2Cache(Cache):
     def __init__(self,
                    way,
@@ -26,24 +37,27 @@ class L2Cache(Cache):
                    total_size, line_size,
                    replacement,addr_size,data_size,isllc)
         self.backing_mem = None
-        self.front_mem = None
+
 
     def read_line(self,addr):
-        print("read_line")
+        # print("read_line")
         tag     = addr>>(self.offset_bit+self.index_bit)
         index   = (addr>>self.offset_bit)&((1<<(self.index_bit))-1)
         hit,row = self.check_hit(tag,index)
         if hit:
             self.hit +=1
             self.replacement.promotion(row)
-            return False,self.data[row][index]
+            return self.data[row][index]
         else:
             self.miss+=1
             way=self.replacement.eviction()
             self.replacement.insert(way)
+            rep_tag  = self.tagv[way][index]
+            rep_addr = (rep_tag<<(self.offset_bit+self.index_bit)) + index<<self.offset_bit
             self.tagv[way][index]=tag
             data = self.backing_mem.read_line(addr)
-            return True,data
+            self.data[way][index] = data 
+            return data
 
 
     def write_line(self,addr,data):
@@ -54,19 +68,20 @@ class L2Cache(Cache):
         if hit:
             self.hit +=1
             self.replacement.promotion(row)
-            return False
+
         else:
             self.miss+=1
             way=self.replacement.eviction()
             self.replacement.insert(way)
+            rep_tag  = self.tagv[way][index]
+            rep_addr = (rep_tag<<(self.offset_bit+self.index_bit)) + index<<self.offset_bit
             self.tagv[way][index]=tag
             self.backing_mem.write_line(addr)
-            return True
+
     
-    def modify_l1(self,tag,index,way):
-        self.front_mem.tagv[way][index] = 0xffffffff
+
 ##################################
-class CacheSim:
+class MemSim:
     def __init__(self):
         # self.way = 2
         # self.line_size  = 16 #byte
@@ -76,7 +91,7 @@ class CacheSim:
 
         # self.l1cache   = L1Cache()
         # self.l2cache   = L2Cache()
-    def set_params(self,
+    def set_params(self,bank_num,bank_row,dim,data_size,
                    l1_way,l1_total_size, l1_line_size,l1_replacement,l1_addr_size,l1_data_size,
                    l2_way,l2_total_size, l2_line_size,l2_replacement,l2_data_size):
         assert l1_line_size%2==0,"Cacheline size is unalign!"
@@ -86,12 +101,13 @@ class CacheSim:
 
 ##################init####################
         self.dram = DRAM(int(l1_line_size/(l1_data_size/8)))
+        self.scratchpad = Scratchpad(bank_num,bank_row,dim,data_size)
         self.l2cache=L2Cache(l2_way,l2_total_size, l2_line_size,l2_replacement,l1_addr_size,l2_data_size,True)
         self.l1cache=L1Cache(l1_way,l1_total_size, l1_line_size,l1_replacement,l1_addr_size,l1_data_size,False)
         
         self.l2cache.backing_mem = self.dram 
-        self.l2cache.front_mem   = self.l1cache
-        self.l1cache.backing_mem = self.l2cache       
+        self.l1cache.backing_mem = self.l2cache    
+        self.scratchpad.backing_mem = self.l2cache  
         # self.l1_way         = l1_way #way=0-> 全相连 way=-1 直接相连 way>1 组相联 
         # self.l1_line_size   = l1_line_size #byte
         # self.l1_total_size  = l1_total_size #Kb
@@ -114,6 +130,15 @@ class CacheSim:
         return  data
     def cache_write(self,addr,data):
         self.l1cache.write(addr,data)
+
+    def spm_read(self,addr):
+        # data = self.l1cache.read(addr)
+        # return  data
+        None
+    def spm_write(self,addr,data):
+        # self.l1cache.write(addr,data)
+        None
+
     def print_info(self):
         l1_miss,l1_hit=self.l1cache.print_info()
         l2_miss,l2_hit=self.l2cache.print_info()

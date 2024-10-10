@@ -1,7 +1,7 @@
 import argparse
 import os
 import configparser as cp
-from cachesim import CacheSim
+from cachesim import MemSim
 from cache import Cache
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -24,6 +24,13 @@ if __name__ == '__main__':
     config = cp.ConfigParser()
     config.read(config_file)
 
+    section = 'scratchpad_architecture_presets'
+
+    bank_num = int(config.get(section, 'Bank Num'))
+    bank_row = int(config.get(section, 'Bank Row per bank'))
+    dim = int(config.get(section, 'Dim'))
+    data_size = int(config.get(section, 'Data Size'))
+
     section = 'l1cache_architecture_presets'
     l1_size = int(config.get(section, 'Total Size'))
     l1_cacheline_size = int(config.get(section, 'Cacheline Size'))
@@ -39,12 +46,14 @@ if __name__ == '__main__':
     l2_data_size   = int(config.get(section, 'Data Size'))
 
 
-    sim = CacheSim()
-    sim.set_params(l1_way,l1_size, l1_cacheline_size,l1_replacement,32,l1_data_size,l1_way,l1_size, l1_cacheline_size,l1_replacement,l1_data_size)
-    # for i in range(0, 0x10000, 0x4):
-    #     sim.cache_read(i)
-    sim.cache_read(0)
-    sim.cache_read(0)
+    sim = MemSim()
+    sim.set_params(bank_num,bank_row,dim,data_size,l1_way,l1_size, l1_cacheline_size,l1_replacement,32,l1_data_size,l1_way,l1_size, l1_cacheline_size,l1_replacement,l1_data_size)
+    for i in range(0, 0x10000, 0x4):
+        sim.cache_read(i)
+    for i in range(0, 0x10000, 0x4):
+        sim.cache_read(i)
+    # sim.cache_read(0)
+    # sim.cache_read(0)
     # sim.cache_read(0x4,0,0,0)
     # sim.cache_read(0x8,0,0,0)
     # sim.cache_read(0xc,0,0,0)

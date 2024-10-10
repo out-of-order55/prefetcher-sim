@@ -2,7 +2,7 @@ import argparse
 import os
 import configparser as cp
 from cachesim import CacheSim
-
+from cache import Cache
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
@@ -24,26 +24,31 @@ if __name__ == '__main__':
     config = cp.ConfigParser()
     config.read(config_file)
 
-    section = 'architecture_presets'
+    section = 'l1cache_architecture_presets'
+    l1_size = int(config.get(section, 'Total Size'))
+    l1_cacheline_size = int(config.get(section, 'Cacheline Size'))
+    l1_way = int(config.get(section, 'Way of Associativity'))
+    l1_replacement = (config.get(section, 'Way of Replacement'))
+    l1_data_size   = int(config.get(section, 'Data Size'))
 
-    size = int(config.get(section, 'Total Size'))
+    section = 'l2cache_architecture_presets'
+    l2_size = int(config.get(section, 'Total Size'))
+    l2_cacheline_size = int(config.get(section, 'Cacheline Size'))
+    l2_way = int(config.get(section, 'Way of Associativity'))
+    l2_replacement = (config.get(section, 'Way of Replacement'))
+    l2_data_size   = int(config.get(section, 'Data Size'))
 
-    cacheline_size = int(config.get(section, 'Cacheline Size'))
-
-    way = int(config.get(section, 'Way of Associativity'))
-
-    replacement = (config.get(section, 'Way of Replacement'))
-    data_size   = int(config.get(section, 'Data Size'))
 
     sim = CacheSim()
-    sim.set_params(way,size, cacheline_size,replacement,32,data_size)
-    for i in range(0, 0x10000, 0x4):
-        sim.cache_write(i,0,0)
-    # sim.cache_read(0,0,0,0)
+    sim.set_params(l1_way,l1_size, l1_cacheline_size,l1_replacement,32,l1_data_size,l1_way,l1_size, l1_cacheline_size,l1_replacement,l1_data_size)
+    # for i in range(0, 0x10000, 0x4):
+    #     sim.cache_read(i)
+    sim.cache_read(0)
+    sim.cache_read(0)
     # sim.cache_read(0x4,0,0,0)
     # sim.cache_read(0x8,0,0,0)
     # sim.cache_read(0xc,0,0,0)
     # sim.cache_read(0x14,0,0,0)
     # sim.cache_read(0,0,0,0)
 
-    sim.sim.print_info()
+    sim.print_info()

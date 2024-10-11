@@ -25,9 +25,29 @@ class Scratchpad:
         self.backing_mem = None
         
     def read(self,addr):
-        None
+        req_num = int(self.dim*(self.data_size/8)/self.backing_mem.line_size)#需要去读的cacheline的数目
+        data_num = int(self.backing_mem.line_size/self.backing_mem.data_size)
+
+        rdata = [0 for _ in range(req_num*(data_num))]
+        for i in range(req_num):
+            data = self.backing_mem.read_line(addr)
+            for j  in range(data_num):
+                rdata[j+i*data_num] = data[j]
+        return rdata
+
     def write(self,addr,data):
-        None   
+        req_num = int(self.dim*(self.data_size/8)/self.backing_mem.line_size)#需要去写的cacheline的数目
+        data_num = int(self.backing_mem.line_size/self.backing_mem.data_size)
+
+        wdata = [[0 for _ in range(data_num)] for _ in range(req_num)]
+
+
+        for i in range(req_num):
+            for j  in range(data_num):
+                wdata[i][j] = data[j+i*data_num]
+        for i in range(req_num):
+            self.backing_mem.write_line(wdata[i],addr)
+
 class L2Cache(Cache):
     def __init__(self,
                    way,
@@ -134,16 +154,16 @@ class MemSim:
     def spm_read(self,addr):
         # data = self.l1cache.read(addr)
         # return  data
-        None
+        return self.scratchpad.read(addr)
     def spm_write(self,addr,data):
         # self.l1cache.write(addr,data)
-        None
+        self.scratchpad.write(addr,data)
 
     def print_info(self):
         l1_miss,l1_hit=self.l1cache.print_info()
         l2_miss,l2_hit=self.l2cache.print_info()
-        l1_miss_rate = l1_miss/(l1_miss+l1_hit)
-        l2_miss_rate = l2_miss/(l2_hit+l2_miss)
+        l1_miss_rate = l1_miss/(l1_miss+l1_hit+1)
+        l2_miss_rate = l2_miss/(l2_hit+l2_miss+1)
         total_miss_rate = l1_miss_rate*l2_miss_rate    
         print(f'L1Cache hit {l1_hit}  miss {l1_miss} miss rate {l1_miss_rate}')
         print(f'L2Cache hit {l2_hit}  miss {l2_miss} miss rate {l2_miss_rate}')

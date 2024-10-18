@@ -13,7 +13,7 @@ class LRU:
         self.miss       = 0
         
     def set_params(self,
-                   way,index_num,data_num):
+                    way,index_num,data_num):
         self.way = way
         # self.tag_bit = tag_bit
         # self.index_bit = index_bit
@@ -28,17 +28,17 @@ class LRU:
         self.lrutree.print_tree()
         
 
-    def insert(self,way:int):
+    def insert(self,index:int,way:int):
         self.update(way)
     
 
-    def promotion(self,way:int):
+    def promotion(self,index:int,way:int):
         self.update(way)
     
-    def aging(self,way:int):
+    def aging(self,index:int,way:int):
         None
 
-    def eviction(self):
+    def eviction(self,index:int):
         val,node_id = self.lrutree.replace()
         way = int(2*(node_id-2**int(math.log2(self.way)-1))+val)  
         return (way)

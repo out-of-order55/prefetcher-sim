@@ -46,7 +46,7 @@ class Scratchpad:
             for j  in range(data_num):
                 wdata[i][j] = data[j+i*data_num]
         for i in range(req_num):
-            self.backing_mem.write_line(wdata[i],addr)
+            self.backing_mem.write_line(addr,wdata[i])
 
 class L2Cache(Cache):
     def __init__(self,
@@ -59,44 +59,44 @@ class L2Cache(Cache):
         self.backing_mem = None
 
 
-    def read_line(self,addr):
-        # print("read_line")
-        tag     = addr>>(self.offset_bit+self.index_bit)
-        index   = (addr>>self.offset_bit)&((1<<(self.index_bit))-1)
-        hit,row = self.check_hit(tag,index)
-        if hit:
-            self.hit +=1
-            self.replacement.promotion(row)
-            return self.data[row][index]
-        else:
-            self.miss+=1
-            way=self.replacement.eviction()
-            self.replacement.insert(way)
-            rep_tag  = self.tagv[way][index]
-            rep_addr = (rep_tag<<(self.offset_bit+self.index_bit)) + index<<self.offset_bit
-            self.tagv[way][index]=tag
-            data = self.backing_mem.read_line(addr)
-            self.data[way][index] = data 
-            return data
+    # def read_line(self,addr):
+    #     # print("read_line")
+    #     tag     = addr>>(self.offset_bit+self.index_bit)
+    #     index   = (addr>>self.offset_bit)&((1<<(self.index_bit))-1)
+    #     hit,row = self.check_hit(tag,index)
+    #     if hit:
+    #         self.hit +=1
+    #         self.replacement.promotion(row)
+    #         return self.data[row][index]
+    #     else:
+    #         self.miss+=1
+    #         way=self.replacement.eviction()
+    #         self.replacement.insert(way)
+    #         rep_tag  = self.tagv[way][index]
+    #         rep_addr = (rep_tag<<(self.offset_bit+self.index_bit)) + index<<self.offset_bit
+    #         self.tagv[way][index]=tag
+    #         data = self.backing_mem.read_line(addr)
+    #         self.data[way][index] = data 
+    #         return data
 
 
-    def write_line(self,addr,data):
+    # def write_line(self,addr,data):
         
-        tag     = addr>>(self.offset_bit+self.index_bit)
-        index   = (addr>>self.offset_bit)&((1<<(self.index_bit))-1)
-        hit,row = self.check_hit(tag,index)
-        if hit:
-            self.hit +=1
-            self.replacement.promotion(row)
+    #     tag     = addr>>(self.offset_bit+self.index_bit)
+    #     index   = (addr>>self.offset_bit)&((1<<(self.index_bit))-1)
+    #     hit,row = self.check_hit(tag,index)
+    #     if hit:
+    #         self.hit +=1
+    #         self.replacement.promotion(row)
 
-        else:
-            self.miss+=1
-            way=self.replacement.eviction()
-            self.replacement.insert(way)
-            rep_tag  = self.tagv[way][index]
-            rep_addr = (rep_tag<<(self.offset_bit+self.index_bit)) + index<<self.offset_bit
-            self.tagv[way][index]=tag
-            self.backing_mem.write_line(addr)
+    #     else:
+    #         self.miss+=1
+    #         way=self.replacement.eviction()
+    #         self.replacement.insert(way)
+    #         rep_tag  = self.tagv[way][index]
+    #         rep_addr = (rep_tag<<(self.offset_bit+self.index_bit)) + index<<self.offset_bit
+    #         self.tagv[way][index]=tag
+    #         self.backing_mem.write_line(addr,data)
 
     
 
@@ -117,7 +117,7 @@ class MemSim:
         assert l1_line_size%2==0,"Cacheline size is unalign!"
         assert l1_total_size%2==0,"Cacheline size is unalign!"
         assert (l1_data_size>>3)<=l1_line_size, "Data size is too big,it must less than 64bits"
-        assert l1_replacement=="PLRU"
+
 
 ##################init####################
         self.dram = DRAM(int(l1_line_size/(l1_data_size/8)))

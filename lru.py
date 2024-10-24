@@ -24,8 +24,9 @@ class LRU:
         # self.tagv = [[ 0xffffffff for _ in range(index_num)] for _ in range(way)]
         # self.dirty = [[ 0 for _ in range(index_num)] for _ in range(way)]
         # self.data = [[[0  for _ in range(data_num)] for _ in range(index_num)] for _ in range(way)]
+       
         self.lrutree  = self.lrutree.create_full_binary_tree(int(math.log2(way)),0)
-        self.lrutree.print_tree()
+        # self.lrutree.print_tree()
         
 
     def insert(self,index:int,way:int):

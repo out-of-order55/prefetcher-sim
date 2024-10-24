@@ -48,13 +48,15 @@ if __name__ == '__main__':
 
     sim = MemSim()
     sim.set_params(bank_num,bank_row,dim,data_size,l1_way,l1_size, l1_cacheline_size,l1_replacement,32,l1_data_size,l2_way,l2_size, l2_cacheline_size,l2_replacement,l2_data_size)
-    for j in range(4):
-        for i in range(0, 0x8000, 0x4):
-            sim.spm_read(i)
+    # for j in range(4):
+    #     for i in range(0, 0x8000, 0x4):
+    #         sim.spm_read(i)
 
-    # for j in range(1):
-    #     for i in range(0,0x10000,0x10):
-    #         sim.cache_read(i)
+    for j in range(2):
+        for i in range(0,0x10000,0x4):
+            sim.cache_read(i)
+        for i in range(0x10000,0x0,-4):
+            sim.cache_read(i)
     # sim.cache_read(0)
     # sim.cache_read(0x1000)
     # sim.cache_read(0x2000)

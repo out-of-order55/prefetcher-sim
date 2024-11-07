@@ -52,13 +52,16 @@ class DRRIP:
             if dedicated_rep_sel==0:
                 self.psel-=1
             if(self.cnt==self.scale-1):
+                self.rrpv[index][way] = 2**self.MBIT-2
                 self.cnt=0
             else:
+                self.rrpv[index][way] = 2**self.MBIT-1
                 self.cnt+=1
         else:
             if dedicated_rep_sel==1:
                 self.psel+=1 
-        self.rrpv[index][way] = 2**self.MBIT-2
+            self.rrpv[index][way] = 2**self.MBIT-2
+        
 
     def promotion(self,index:int,way:int):
         self.rrpv[index][way] = 0
@@ -68,44 +71,20 @@ class DRRIP:
 
     def eviction(self,index:int):
         i=0
-        rep_sel,dedicated_rep_sel=self.rep_sel(index)
-        if(rep_sel):
-            while(i<self.way):
-                if(self.rrpv[index][i]==2**self.MBIT-1):
-                    break
-                if (i==self.way-1)&(self.rrpv[index][i]!=2**self.MBIT-1):
-                    i=0
-                    for j in range(self.way):
-                        self.rrpv[index][j] += 1
-                        if(self.rrpv[index][j]>2**self.MBIT-1):
-                            self.rrpv[index][j] = 2**self.MBIT-1
-                else :
-                    i+=1
-        else:
-            if(self.cnt==0):
-                while(i<self.way):
-                    if(self.rrpv[index][i]==2**self.MBIT-2):
-                        break
-                    if (i==self.way-1)&(self.rrpv[index][i]!=2**self.MBIT-2):
-                        i=0
-                        for j in range(self.way):
-                            self.rrpv[index][j] += 1
-                            if(self.rrpv[index][j]>2**self.MBIT-2):
-                                self.rrpv[index][j] = 2**self.MBIT-2
-                    else :
-                        i+=1
-            else:
-                while(i<self.way):
-                    if(self.rrpv[index][i]==2**self.MBIT-1):
-                        break
-                    if (i==self.way-1)&(self.rrpv[index][i]!=2**self.MBIT-1):
-                        i=0
-                        for j in range(self.way):
-                            self.rrpv[index][j] += 1
-                            if(self.rrpv[index][j]>2**self.MBIT-1):
-                                self.rrpv[index][j] = 2**self.MBIT-1
-                    else :
-                        i+=1
+
+
+        while(i<self.way):
+            if(self.rrpv[index][i]==2**self.MBIT-1):
+                break
+            if (i==self.way-1)&(self.rrpv[index][i]!=2**self.MBIT-1):
+                i=0
+                for j in range(self.way):
+                    self.rrpv[index][j] += 1
+                    if(self.rrpv[index][j]>2**self.MBIT-1):
+                        self.rrpv[index][j] = 2**self.MBIT-1
+            else :
+                i+=1
+
         return i 
     def check_hit(self,tag,index):
         for row_index,row in enumerate(self.tagv):

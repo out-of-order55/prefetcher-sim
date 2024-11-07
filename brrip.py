@@ -20,8 +20,10 @@ class BRRIP:
 #only cache miss can use this api
     def insert(self,index:int,way:int):
         self.cnt +=1
-        self.rrpv[index][way] = 2**self.MBIT-2
-    
+        if(self.cnt%self.scale==self.scale-1):
+            self.rrpv[index][way] = 2**self.MBIT-2
+        else:
+            self.rrpv[index][way] = 2**self.MBIT-1
 
     def promotion(self,index:int,way:int):
         self.rrpv[index][way] = 0
@@ -31,31 +33,16 @@ class BRRIP:
 
     def eviction(self,index:int):
         i=0
-        if(self.cnt%self.scale==self.scale-1):
-            while(i<self.way):
-                if(self.rrpv[index][i]==2**self.MBIT-2):
-                    break
-                if (i==self.way-1)&(self.rrpv[index][i]!=2**self.MBIT-2):
-                    i=0
-                    for j in range(self.way):
-                        self.rrpv[index][j] += 1
-                        if(self.rrpv[index][j]>2**self.MBIT-2):
-                            self.rrpv[index][j] = 2**self.MBIT-2
-                else :
-                    i+=1
-        else:
-            while(i<self.way):
-                if(self.rrpv[index][i]==2**self.MBIT-1):
-                    break
-                if (i==self.way-1)&(self.rrpv[index][i]!=2**self.MBIT-1):
-                    i=0
-                    for j in range(self.way):
-                        self.rrpv[index][j] += 1
-                        if(self.rrpv[index][j]>2**self.MBIT-1):
-                            self.rrpv[index][j] = 2**self.MBIT-1
-                else :
-                    i+=1
-        return i 
+        while(i<self.way):
+            if(self.rrpv[index][i]==2**self.MBIT-1):
+                break
+            if (i==self.way-1)&(self.rrpv[index][i]!=2**self.MBIT-1):
+                i=0
+                for j in range(self.way):
+                    self.rrpv[index][j] += 1
+            else :
+                i+=1
+        return i
     def check_hit(self,tag,index):
         for row_index,row in enumerate(self.tagv):
             if tag==row[index]:
